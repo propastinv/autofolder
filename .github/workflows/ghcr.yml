@@ -1,0 +1,40 @@
+name: Build and Push Docker Image to GHCR
+
+permissions:
+  packages: write
+  contents: read
+
+on:
+  push:
+    paths:
+      - "VERSION"
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Read VERSION file
+      id: get_version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "version=$VERSION" >> $GITHUB_ENV
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build Docker Image
+      run: |
+        docker build -t ghcr.io/${{ github.repository }}:${{ env.version }} .
+
+    - name: Push Docker Image to GHCR
+      run: |
+        docker push ghcr.io/${{ github.repository }}:${{ env.version }}
