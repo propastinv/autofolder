@@ -19,20 +19,23 @@ def normalize_folder_name(email_address):
 def create_folder_if_not_exists(mail, folder_name):
     status, folders = mail.list()
     if status != 'OK':
-        print('Ошибка при получении списка папок')
+        print('Error getting folder list:', folders)
         return False
 
     folder_names = [f.decode().split(' "/" ')[-1].strip('"') for f in folders]
     if folder_name in folder_names:
-        print(f"Папка {folder_name} уже существует")
+        print(f"Folder {folder_name} already exists")
         return True
 
     status, data = mail.create(folder_name)
     if status == 'OK':
-        print(f"Папка {folder_name} создана")
+        print(f"Folder {folder_name} created successfully")
+        return True
+    elif b'ALREADYEXISTS' in data[0]:
+        print(f"Folder {folder_name} already exists")
         return True
     else:
-        print(f"Ошибка создания папки {folder_name}: {data}")
+        print(f"Error creating folder {folder_name}: {data}")
         return False
 
 def fetch_last_emails_and_create_folders():
