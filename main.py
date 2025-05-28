@@ -64,18 +64,11 @@ def fetch_last_emails_and_create_folders():
 
         sender_email = email.utils.parseaddr(from_decoded)[1]
         if not sender_email:
-            print("Не удалось извлечь email отправителя")
+            print("No valid sender email found, skipping this message.")
             continue
 
         folder_name = normalize_folder_name(sender_email)
         create_folder_if_not_exists(mail, folder_name)
-
-        subject = decode_mime_words(msg.get("Subject", ""))
-        date = msg.get("Date", "")
-        print(f"From: {from_decoded}")
-        print(f"Subject: {subject}")
-        print(f"Date: {date}")
-        print("-" * 50)
 
     mail.logout()
 
