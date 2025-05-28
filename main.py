@@ -3,7 +3,8 @@ import email
 import re
 from email.header import decode_header
 import email.utils
-from config import IMAP_HOST, IMAP_USER, IMAP_PASS, IMAP_FOLDER
+from config import IMAP_HOST, IMAP_USER, IMAP_PASS, IMAP_FOLDER, SIEVE_HOST, SIEVE_PORT
+from managesieve import MANAGESIEVE
 
 def decode_mime_words(s):
     decoded = decode_header(s)
@@ -38,6 +39,44 @@ def create_folder_if_not_exists(mail, folder_name):
         print(f"Error creating folder {folder_name}: {data}")
         return False
 
+def add_sieve_filter(email_address, folder_name):
+    try:
+        print(f"Connecting to ManageSieve on {SIEVE_HOST}:{SIEVE_PORT}...")
+        client = MANAGESIEVE(host=SIEVE_HOST, port=SIEVE_PORT, use_tls=False, keyfile=None, certfile=None)
+        print("Connected")
+
+        print(f"Logging in as accounts with PLAIN auth")
+        client.login("PLAIN", "accounts@epcnetwork.dev", IMAP_PASS)
+        print("Logged in")
+
+        scripts = client.listscripts()
+        print(f"Available scripts: {scripts}")
+
+        scripts = client.listscripts()
+        script_name = "autofolder"
+        script_content = ""
+
+        if script_name in scripts:
+            script_content = client.getscript(script_name).decode()
+
+        rule = f'''
+if address :contains "From" "{email_address}" {{
+    fileinto "{folder_name}";
+}}
+'''
+
+        if rule.strip() in script_content:
+            print(f"Sieve rule for {email_address} already exists")
+        else:
+            new_script = script_content + rule
+            client.putscript(script_name, new_script.encode())
+            client.setactive(script_name)
+            print(f"Sieve rule added for {email_address} → {folder_name}")
+
+        client.logout()
+    except Exception as e:
+        print(f"Error updating sieve script: {e}")
+
 def fetch_last_emails_and_create_folders():
     mail = imaplib.IMAP4_SSL(IMAP_HOST)
     mail.login(IMAP_USER, IMAP_PASS)
@@ -69,6 +108,7 @@ def fetch_last_emails_and_create_folders():
 
         folder_name = normalize_folder_name(sender_email)
         create_folder_if_not_exists(mail, folder_name)
+        add_sieve_filter(sender_email, folder_name)
 
     mail.logout()
 
