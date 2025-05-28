@@ -1,35 +1,80 @@
-from imap_tools import MailBox, AND
-from config import IMAP_HOST, IMAP_USER, IMAP_PASS, IMAP_FOLDER
+import imaplib
+import email
 import re
+from email.header import decode_header
+import email.utils
+from config import IMAP_HOST, IMAP_USER, IMAP_PASS, IMAP_FOLDER
 
-def normalize_folder_name(email):
-    local_part = email.split('@')[0]
+def decode_mime_words(s):
+    decoded = decode_header(s)
+    return ''.join([
+        part.decode(enc or 'utf-8') if isinstance(part, bytes) else part
+        for part, enc in decoded
+    ])
+
+def normalize_folder_name(email_address):
+    local_part = email_address.split('@')[0]
     return re.sub(r'[^a-zA-Z0-9_]', '_', local_part)
 
-def create_folder_if_not_exists(mailbox, folder_name):
-    folders = [f.name for f in mailbox.folder.list()]
-    if folder_name not in folders:
-        print(f"Creating: {folder_name}")
-        mailbox.folder.create(folder_name)
+def create_folder_if_not_exists(mail, folder_name):
+    status, folders = mail.list()
+    if status != 'OK':
+        print('Ошибка при получении списка папок')
+        return False
+
+    folder_names = [f.decode().split(' "/" ')[-1].strip('"') for f in folders]
+    if folder_name in folder_names:
+        print(f"Папка {folder_name} уже существует")
+        return True
+
+    status, data = mail.create(folder_name)
+    if status == 'OK':
+        print(f"Папка {folder_name} создана")
+        return True
     else:
-        print(f"{folder_name} already exists.")
+        print(f"Ошибка создания папки {folder_name}: {data}")
+        return False
 
-def fetch_and_create_folders():
-    with MailBox(IMAP_HOST).login(IMAP_USER, IMAP_PASS, IMAP_FOLDER) as mailbox:
-        print(f"Connected to {IMAP_HOST} as {IMAP_USER}")
-        messages = mailbox.fetch(limit=20, reverse=True)
+def fetch_last_emails_and_create_folders():
+    mail = imaplib.IMAP4_SSL(IMAP_HOST)
+    mail.login(IMAP_USER, IMAP_PASS)
+    mail.select(IMAP_FOLDER)
 
-        for msg in messages:
-            sender_email = msg.from_
-            folder_name = normalize_folder_name(sender_email)
+    status, messages = mail.search(None, "ALL")
+    if status != "OK":
+        print("No messages found!")
+        mail.logout()
+        return
 
-            create_folder_if_not_exists(mailbox, folder_name)
+    msg_nums = messages[0].split()
+    last_msgs = msg_nums[-10:]
 
-            print(f"From: {sender_email}")
-            print(f"Folder: {folder_name}")
-            print(f"Subject: {msg.subject}")
-            print(f"Date: {msg.date}")
-            print("—" * 40)
+    for num in last_msgs:
+        status, data = mail.fetch(num, '(RFC822)')
+        if status != "OK":
+            print(f"Failed to fetch message {num}")
+            continue
+
+        msg = email.message_from_bytes(data[0][1])
+        from_raw = msg.get("From", "")
+        from_decoded = decode_mime_words(from_raw)
+
+        sender_email = email.utils.parseaddr(from_decoded)[1]
+        if not sender_email:
+            print("Не удалось извлечь email отправителя")
+            continue
+
+        folder_name = normalize_folder_name(sender_email)
+        create_folder_if_not_exists(mail, folder_name)
+
+        subject = decode_mime_words(msg.get("Subject", ""))
+        date = msg.get("Date", "")
+        print(f"From: {from_decoded}")
+        print(f"Subject: {subject}")
+        print(f"Date: {date}")
+        print("-" * 50)
+
+    mail.logout()
 
 if __name__ == "__main__":
-    fetch_and_create_folders()
+    fetch_last_emails_and_create_folders()
