@@ -45,8 +45,8 @@ def add_sieve_filter(email_address, folder_name):
         client = MANAGESIEVE(host=SIEVE_HOST, port=SIEVE_PORT, use_tls=False, keyfile=None, certfile=None)
         print("Connected")
 
-        print(f"Logging in as accounts with PLAIN auth")
-        client.login("PLAIN", "accounts@epcnetwork.dev", IMAP_PASS)
+        print(f"Logging in as accounts with PLAIN LOGIN auth")
+        client.login("PLAIN LOGIN", "accounts@epcnetwork.dev", IMAP_PASS)
         print("Logged in")
 
         scripts = client.listscripts()
