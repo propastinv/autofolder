@@ -46,7 +46,7 @@ def add_sieve_filter(email_address, folder_name):
         print("Connected")
 
         print(f"Logging in as accounts with PLAIN LOGIN auth")
-        client.login("PLAIN", "accounts@epcnetwork.dev", IMAP_PASS)
+        client.login("LOGIN", "accounts@epcnetwork.dev", IMAP_PASS)
         print("Logged in")
 
         scripts = client.listscripts()
