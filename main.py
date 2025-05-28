@@ -42,7 +42,7 @@ def create_folder_if_not_exists(mail, folder_name):
 def add_sieve_filter(email_address, folder_name):
     try:
         print(f"Connecting to ManageSieve on {SIEVE_HOST}:{SIEVE_PORT}...")
-        client = MANAGESIEVE(host=SIEVE_HOST, port=SIEVE_PORT, use_tls=True, keyfile=None, certfile=None)
+        client = MANAGESIEVE(host=SIEVE_HOST, port=SIEVE_PORT, use_tls=False, keyfile=None, certfile=None)
         print("Connected")
 
         print(f"Logging in as accounts with PLAIN LOGIN auth")
