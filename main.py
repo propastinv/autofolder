@@ -28,7 +28,8 @@ def create_folder_if_not_exists(mail, folder_name):
 
     status, data = mail.create(folder_name)
     if status == 'OK':
-        print(f"Folder {folder_name} created successfully")
+        mail.subscribe(folder_name)
+        print(f"Folder {folder_name} created and subscribed")
         return True
     elif b'ALREADYEXISTS' in data[0]:
         return True
