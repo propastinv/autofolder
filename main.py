@@ -59,7 +59,7 @@ def fetch_unread_and_distribute():
     msg_nums = messages[0].split()
 
     for num in msg_nums:
-        status, data = mail.fetch(num, '(RFC822)')
+        status, data = mail.fetch(num, '(BODY.PEEK[])')
         if status != "OK":
             print(f"Failed to fetch message {num}")
             continue
