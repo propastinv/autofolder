@@ -46,7 +46,7 @@ def add_sieve_filter(email_address, folder_name):
         print("Connected")
 
         print("Checking capabilities...")
-        capabilities = client.capabilities()
+        capabilities = client.capabilities
         print(f"Capabilities: {capabilities}")
 
         print(f"Logging in as accounts with PLAIN LOGIN auth")
