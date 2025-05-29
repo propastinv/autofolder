@@ -50,7 +50,7 @@ def fetch_unread_and_distribute():
     mail.login(IMAP_USER, IMAP_PASS)
     mail.select(IMAP_FOLDER)
 
-    status, messages = mail.search(None, 'UNSEEN')
+    status, messages = mail.search(None, "ALL")
     if status != "OK":
         print("No unread messages found!")
         mail.logout()
