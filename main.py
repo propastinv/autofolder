@@ -54,11 +54,15 @@ def add_sieve_filter(email_address, folder_name):
         capabilities = client.capabilities
         print(f"Capabilities: {capabilities}")
 
+        print("Checking auth mechanisms...")
+        auth_mechs = client.authmechs
+        print(f"Supported auth mechanisms: {auth_mechs}")
+
         print(f"Logging in as accounts with PLAIN LOGIN auth")
         client.login("PLAIN", "accounts@epcnetwork.dev", IMAP_PASS)
         print("Logged in")
 
-        scripts = client.listscripts()
+        scripts = client.listscripts
         print(f"Available scripts: {scripts}")
 
         scripts = client.listscripts()
