@@ -55,12 +55,12 @@ def add_sieve_filter(email_address, folder_name):
         print(f"Capabilities: {capabilities}")
 
         print(f"Logging in as accounts with PLAIN LOGIN auth")
-        login = client.login("PLAIN", "accounts@epcnetwork.dev", IMAP_PASS)
+        login = client.login("LOGIN", "accounts@epcnetwork.dev", IMAP_PASS)
         print("Logged in: ", login)
 
         scripts = client.listscripts
         print(f"Available scripts: {scripts}")
-        
+
         script_name = "autofolder"
         script_content = ""
 
