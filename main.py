@@ -25,6 +25,11 @@ def parse_recipients(to_decoded):
     valid_recipients = [p for p in parts if EMAIL_RE.fullmatch(p)]
     return valid_recipients
 
+def recipient_to_email(r):
+    if isinstance(r, tuple) and len(r) == 2:
+        return r[1].lower()
+    return r.lower()
+
 def normalize_folder_name(email_address):
     local_part, domain = email_address.split('@', 1)
     if local_part.lower() == "admin":
@@ -113,6 +118,23 @@ def fetch_unread_and_distribute():
 
             to_decoded = decode_mime_words(to_raw)
             recipients = parse_recipients(to_decoded)
+
+            # --- НАЧАЛО ДОБАВЛЕННОГО БЛОКА ---
+            # Приводим получателей из To к email (в нижний регистр)
+            recipient_emails = [recipient_to_email(r) for r in recipients]
+            # Если единственный получатель "accounts@epcnetwork.dev"
+            if len(recipient_emails) == 1 and recipient_emails[0] == "accounts@epcnetwork.dev":
+                # Берем From заголовок и парсим из него получателей
+                from_raw = msg.get("From", "")
+                from_decoded = decode_mime_words(from_raw)
+                from_recipients = parse_recipients(from_decoded)
+                if from_recipients:
+                    recipients = from_recipients
+                    print(f"Message {num_str} uses From header recipients instead of To")
+                else:
+                    print(f"Message {num_str} has 'accounts@epcnetwork.dev' as recipient but no valid From found, skipping.")
+                    continue
+            # --- КОНЕЦ ДОБАВЛЕННОГО БЛОКА ---
 
             if not recipients:
                 print(f"Message {num_str} — no valid recipient emails parsed from 'To': {to_raw}")
