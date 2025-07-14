@@ -25,6 +25,21 @@ IMAP_PASS=your-password
 IMAP_FOLDER=INBOX
 ```
 
+## Installation & Usage (Local)
+
+1. **Create env:**
+
+   ```sh
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+2. **Install packages**
+
+   ```sh
+   pip install -r requirements.txt
+   ```
+
 ## Installation & Usage (Docker)
 
 1. **Build the Docker image:**

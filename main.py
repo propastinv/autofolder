@@ -65,7 +65,7 @@ def fetch_unread_and_distribute():
             continue
 
         msg = email.message_from_bytes(data[0][1])
-        from_raw = msg.get("From", "")
+        from_raw = msg.get("To", "")
         from_decoded = decode_mime_words(from_raw)
 
         sender_email = email.utils.parseaddr(from_decoded)[1]
